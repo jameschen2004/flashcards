@@ -2,31 +2,64 @@ import './App.css';
 import { useState } from 'react';
 import img from "./assets/image.png"
 
-const Flashcard = ({ question, answer, category, image }) => {
+const App = () => {
+
   const [isFlipped, setIsFlipped] = useState(false);
 
-  const toggleCard = () => {
-    setIsFlipped(!isFlipped);
-  };
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState(null);
 
-  let cardStyle = {};
-  if (category === "character") {
-    cardStyle.backgroundColor = "blue";
-  } else if (category === "pinyin") {
-    cardStyle.backgroundColor = "green";
-  } else if (category === "english") {
-    cardStyle.backgroundColor = "red";
+  const Flashcard = ({ question, answer, category, image }) => {
+  
+    const toggleCard = () => {
+      setIsFlipped(!isFlipped);
+    };
+
+    const onCheckAnswer = (e) => {
+      if (document.getElementById("answer").value.trim().toLowerCase() === flashcards[currentQuestionIndex].answer.toLowerCase()) {
+        setIsAnswerCorrect(true);
+      } else {
+        setIsAnswerCorrect(false);
+      }
+      e.preventDefault();
+    };
+
+    let cardStyle = {};
+    if (category === "character") {
+      cardStyle.backgroundColor = "blue";
+    } else if (category === "pinyin") {
+      cardStyle.backgroundColor = "green";
+    } else if (category === "english") {
+      cardStyle.backgroundColor = "red";
+    }
+  
+    return (
+      <div>
+        <div className='flashcard' style={cardStyle} onClick={toggleCard}>
+          {isFlipped ? <div className='back'>{answer}</div> : 
+          <div className='front'>{image ? (<><img src={image} alt='question_img'/><p>{question}</p></>) : question}</div>}
+        </div>
+        <div className='checkForm'>
+          <form>
+            <input
+              label="answer"
+              type="text"
+              id="answer"
+              placeholder="type your answer here"
+            />
+          </form>
+        </div>
+        <button type="submit" className="button submit" onClick={onCheckAnswer}>
+          Check Answer
+        </button>
+        {isAnswerCorrect !== null && (
+          <p className={`answer-feedback ${isAnswerCorrect ? 'correct' : 'incorrect'}`}>
+            {isAnswerCorrect ? 'Correct!' : 'Incorrect. Try again.'}
+          </p>
+        )}
+      </div>
+    );
   }
 
-  return (
-    <div className='flashcard' style={cardStyle} onClick={toggleCard}>
-      {isFlipped ? <div className='back'>{answer}</div> : 
-      <div className='front'>{image ? (<><img src={image} alt='question_img'/><p>{question}</p></>) : question}</div>}
-    </div>
-  );
-}
-
-const App = () => {
   const flashcards = [
     {question:"目前的拼音", answer:"mu4qian2", category:"pinyin", image:img},
     {question:"目前的英文", answer:"currently", category:"english", image:img},
@@ -46,21 +79,14 @@ const App = () => {
   const [previousQuestionIndex, setPreviousQuestionIndex] = useState(-1);
 
   const nextQuestion = () => {
-    setPreviousQuestionIndex(currentQuestionIndex);
-    if (flashcards.length > 1) {
-      let randomIndex;
-      do {
-        randomIndex = Math.floor(Math.random() * flashcards.length);
-      } while (randomIndex === currentQuestionIndex);
-  
-      setCurrentQuestionIndex(randomIndex);
-    }
+    setIsFlipped(false);
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
   };
+  
 
   const previousQuestion = () => {
-    if (previousQuestionIndex !== -1) {
-      setCurrentQuestionIndex(previousQuestionIndex);
-    }
+    setIsFlipped(false);
+    setCurrentQuestionIndex(currentQuestionIndex - 1);
   };
 
   return (
@@ -78,7 +104,7 @@ const App = () => {
 
       <div className="navigation">
         <button onClick={previousQuestion} disabled={currentQuestionIndex === 0}>Previous Question</button>
-        <button onClick={nextQuestion}>Next Question</button>
+        <button onClick={nextQuestion} disabled={currentQuestionIndex === flashcards.length-1}>Next Question</button>
       </div>
     </div>
   );
